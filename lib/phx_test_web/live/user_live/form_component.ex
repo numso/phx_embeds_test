@@ -27,6 +27,19 @@ defmodule PhxTestWeb.UserLive.FormComponent do
     save_user(socket, socket.assigns.action, user_params)
   end
 
+  def handle_event("add_color", _, %{assigns: %{changeset: changeset}} = socket) do
+    colors = Ecto.Changeset.get_field(changeset, :colors, []) ++ [%{}]
+    changeset = Ecto.Changeset.put_embed(changeset, :colors, colors)
+    {:noreply, assign(socket, :changeset, changeset)}
+  end
+
+  def handle_event("remove_color", %{"id" => id}, %{assigns: %{changeset: changeset}} = socket) do
+    {i, _} = id |> String.replace("user_colors_", "") |> Integer.parse()
+    colors = Ecto.Changeset.get_field(changeset, :colors, []) |> List.delete_at(i)
+    changeset = Ecto.Changeset.put_embed(changeset, :colors, colors)
+    {:noreply, assign(socket, :changeset, changeset)}
+  end
+
   defp save_user(socket, :edit, user_params) do
     case Accounts.update_user(socket.assigns.user, user_params) do
       {:ok, _user} ->
